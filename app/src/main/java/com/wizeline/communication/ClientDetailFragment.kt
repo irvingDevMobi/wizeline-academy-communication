@@ -1,11 +1,15 @@
 package com.wizeline.communication
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 
 private const val ARG_CLIENT_ID = "clientId"
 private const val ARG_CLIENT_NAME = "clientName"
@@ -25,7 +29,7 @@ class ClientDetailFragment : Fragment() {
     private var nameEditText: TextInputEditText? = null
     private var ratingEditText: TextInputEditText? = null
 
-    // TODO: 4-> Challenge use sharedViewModel to get selected Client
+    private val sharedClientViewModel by activityViewModels<SharedClientViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +55,23 @@ class ClientDetailFragment : Fragment() {
         idEditText?.setText(clientId)
         nameEditText?.setText(clientName)
         ratingEditText?.setText(clientRatingString)
+
+        nameEditText?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                sharedClientViewModel.updateUiState(
+                    sharedClientViewModel.uiState.value?.copy(
+                        name = s.toString()
+                    ) ?: Client()
+                )
+            }
+
+        })
     }
 
     companion object {

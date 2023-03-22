@@ -1,5 +1,15 @@
 package com.wizeline.communication
 
-// TODO: 3b -> Create SharedViewModel class
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 
-// TODO: 3c -> Create selected Client LiveData
+class SharedClientViewModel : ViewModel() {
+
+    private val _uiState = MutableLiveData<Client>()
+    val uiState: LiveData<Client> get() = _uiState
+
+    fun updateUiState(client: Client) {
+        _uiState.value = client
+    }
+}

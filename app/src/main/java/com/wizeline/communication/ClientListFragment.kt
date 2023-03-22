@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,23 +20,29 @@ class ClientListFragment : Fragment() {
 
     private var columnCount = 1
 
-    //TODO: 2b -> create interface property
+    var callback: OnClientListListener? = null
+    var clientListRecyclerViewAdapter: ClientListRecyclerViewAdapter? = null
 
-    // TODO: 3f -> create sharedViewModel
+    private val sharedViewModel: SharedClientViewModel
+    by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // TODO: 1b -> Read argument and assign to columnCount
+        arguments?.let {
+            columnCount = it.getInt(ARG_COLUMN_COUNT, 1)
+        }
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        // TODO: 2c -> set interface from activity or create a set method
+        if (context is OnClientListListener) {
+            callback = context
+        }
     }
 
     override fun onDetach() {
         super.onDetach()
-        // TODO: 2d -> don't forget to delete reference to listener to avoid Memory leaks
+        callback = null
     }
 
     override fun onCreateView(
@@ -43,7 +50,6 @@ class ClientListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.client_list, container, false)
-
         // Set the adapter
         if (view is RecyclerView) {
             with(view) {
@@ -51,21 +57,36 @@ class ClientListFragment : Fragment() {
                     columnCount <= 1 -> LinearLayoutManager(context)
                     else -> GridLayoutManager(context, columnCount)
                 }
-                adapter = ClientListRecyclerViewAdapter(PlaceholderContent.ITEMS) { client ->
+                clientListRecyclerViewAdapter = ClientListRecyclerViewAdapter(PlaceholderContent.ITEMS) { client ->
                     Log.d("ClientListFragment", "$client")
-                    // TODO: 2f -> notify to activity about the client selected
+                    //callback?.onItemClick(client)
 
-                    // TODO: 3g -> update selected client
+                    sharedViewModel.updateUiState(client)
                 }
+                adapter = clientListRecyclerViewAdapter
             }
         }
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        sharedViewModel.uiState.observe(viewLifecycleOwner) {
+            clientListRecyclerViewAdapter?.updateClient(it)
+        }
     }
 
     companion object {
 
         private const val ARG_COLUMN_COUNT = "column-count"
 
-        // TODO: 1a -> Create method to received number of columns
+        fun newInstance(numOfColumns: Int = 1): ClientListFragment {
+            return ClientListFragment().apply {
+                val bundle = Bundle().apply {
+                    putInt(ARG_COLUMN_COUNT, numOfColumns)
+                }
+                arguments = bundle
+            }
+        }
     }
 }

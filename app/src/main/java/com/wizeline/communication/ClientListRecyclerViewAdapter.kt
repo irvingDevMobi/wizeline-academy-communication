@@ -37,6 +37,12 @@ class ClientListRecyclerViewAdapter(
 
     override fun getItemCount(): Int = values.size
 
+    fun updateClient(newClient: Client) {
+        val client = values.firstOrNull { it.id == newClient.id } ?: return
+        client.name = newClient.name
+        notifyItemChanged(values.indexOf(client))
+    }
+
     inner class ViewHolder(binding: ClientListItemBinding) : RecyclerView.ViewHolder(binding.root) {
         val idView: TextView = binding.clientId
         val contentView: TextView = binding.clientName
